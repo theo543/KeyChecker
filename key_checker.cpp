@@ -3,6 +3,12 @@
 #include <cstdlib>
 #include <cstdio>
 
+#ifdef DEBUG_DISPLAY_ALL_KEYCODES
+    // don't let compiler know that this is always true
+    volatile bool always_true = true;
+    #define GetAsyncKeyState(x) (always_true ? true : GetAsyncKeyState(x))
+#endif
+
 const wchar_t STATIC_CLASS[] = TEXT("STATIC");
 const wchar_t WINDOW_CLASS[] = TEXT("Key Checker");
 WNDCLASSEX wc = {};

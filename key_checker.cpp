@@ -19,6 +19,7 @@ const int WINDOW_WIDTH_INIT = 400;
 const int WINDOW_HEIGHT_INIT = 200;
 
 const char TXT_DEFAULT[] = "Press a key...";
+const int TXT_MARGIN = 10;
 const int VK_MAX = 0xFF;
 const int TXT_MAX_SIZE = VK_MAX * 30 + 1;
 const int VK_ASCII_LETTER_MIN = 0x41;
@@ -67,7 +68,7 @@ int main() {
     wc.hInstance = hInst;
     wc.hIcon = nullptr;
     wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-    wc.hbrBackground = nullptr;
+    wc.hbrBackground = CreateSolidBrush(RGB(240, 240, 240));
     wc.lpszMenuName = nullptr;
     wc.lpszClassName = WINDOW_CLASS;
     wc.hIconSm = nullptr;
@@ -95,12 +96,12 @@ int main() {
             0,
             STATIC_CLASS,
             nullptr,
-            WS_CHILD | WS_VISIBLE,
+            WS_CHILD | WS_VISIBLE | SS_LEFT | SS_SUNKEN,
 
-            0,
-            0,
-            WINDOW_WIDTH_INIT,
-            WINDOW_HEIGHT_INIT,
+           TXT_MARGIN,
+           TXT_MARGIN,
+           WINDOW_WIDTH_INIT - 2 * TXT_MARGIN,
+           WINDOW_HEIGHT_INIT - 2 * TXT_MARGIN,
 
             hwnd,
             nullptr,
@@ -110,8 +111,6 @@ int main() {
     );
 
     ShowWindow(hwnd, SW_SHOWNORMAL);
-    // no resize
-    SetWindowLongPtrA(hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_STYLE) & ~WS_SIZEBOX & ~WS_MAXIMIZEBOX);
 
     SetTimer(hwnd, 0, TIMER_MS, nullptr);
     MSG msg = {};
@@ -166,6 +165,22 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT wm, WPARAM wp, LPARAM lp) {
                 mbstowcs(txt_current_w, txt_current, TXT_MAX_SIZE);
                 SetWindowText(hwndStaticText, txt_current_w);
             }
+            return 0;
+        }
+
+        case WM_SIZE: {
+            int width = LOWORD(lp), height = HIWORD(lp);
+            SetWindowPos(
+                hwndStaticText,
+                nullptr,
+
+                TXT_MARGIN,
+                TXT_MARGIN,
+                width - 2 * TXT_MARGIN,
+                height - 2 * TXT_MARGIN,
+
+                SWP_NOZORDER | SWP_NOCOPYBITS
+            );
             return 0;
         }
 

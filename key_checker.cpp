@@ -14,9 +14,11 @@ const int WINDOW_HEIGHT_INIT = 200;
 
 const char TXT_DEFAULT[] = "Press a key...";
 const int VK_MAX = 0xFF;
-const int TXT_MAX_SIZE = VK_MAX * 5 + 1; // non-ASCII VK will be formatted as 0xXX, and a space is added after each
-const int VK_ASCII_MAX = 0x5A;
-const int VK_ASCII_MIN = 0x30;
+const int TXT_MAX_SIZE = VK_MAX * 30 + 1;
+const int VK_ASCII_LETTER_MIN = 0x41;
+const int VK_ASCII_LETTER_MAX = 0x5A;
+const int VK_ASCII_NUMBER_MIN = 0x30;
+const int VK_ASCII_NUMBER_MAX = 0x39;
 
 int nr_pressed = 0;
 int pressed_indexes[TXT_MAX_SIZE] = {};
@@ -26,17 +28,19 @@ wchar_t txt_current_w[TXT_MAX_SIZE] = {};
 char txt_tmp[TXT_MAX_SIZE] = {};
 
 const char HEX_CHARS[] = "0123456789ABCDEF";
+extern const char *keycode_names[];
 
-int append_keycode(char **dest, int keycode) {
-    if(keycode >= VK_ASCII_MIN && keycode <= VK_ASCII_MAX) {
+void append_keycode(char **dest, int keycode) {
+    if((keycode >= VK_ASCII_LETTER_MIN && keycode <= VK_ASCII_LETTER_MAX) || (keycode >= VK_ASCII_NUMBER_MIN && keycode <= VK_ASCII_NUMBER_MAX)) {
         sprintf(*dest, "%c ", static_cast<char>(keycode));
         (*dest) += 2;
-        return 2;
+    } else if (keycode_names[keycode] != nullptr) {
+        sprintf(*dest, "%s ", keycode_names[keycode]);
+        (*dest) += strlen(keycode_names[keycode]) + 1;
     } else {
         char hex_first_digit = HEX_CHARS[keycode >> 4], hex_second_digit = HEX_CHARS[keycode & 0xF];
         sprintf(*dest, "0x%c%c ", hex_first_digit, hex_second_digit);
         *dest += 5;
-        return 5;
     }
 }
 

@@ -18,10 +18,12 @@ const int TXT_MAX_SIZE = VK_MAX * 5 + 1; // non-ASCII VK will be formatted as 0x
 const int VK_ASCII_MAX = 0x5A;
 const int VK_ASCII_MIN = 0x30;
 
-bool currently_pressed[TXT_MAX_SIZE] = {};
-char currently_displayed[TXT_MAX_SIZE] = {};
-wchar_t currently_displayed_w[TXT_MAX_SIZE] = {};
-char tmp_new_displayed[TXT_MAX_SIZE] = {};
+int nr_pressed = 0;
+int pressed_indexes[TXT_MAX_SIZE] = {};
+bool is_pressed[TXT_MAX_SIZE] = {};
+char txt_current[TXT_MAX_SIZE] = {};
+wchar_t txt_current_w[TXT_MAX_SIZE] = {};
+char txt_tmp[TXT_MAX_SIZE] = {};
 
 const char HEX_CHARS[] = "0123456789ABCDEF";
 
@@ -119,38 +121,40 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT wm, WPARAM wp, LPARAM lp) {
         }
 
         case WM_TIMER: {
-            char *new_displayed = tmp_new_displayed;
+            char *new_displayed = txt_tmp;
 
-            for (int x = 1;x < VK_MAX;x++) {
-                if(!currently_pressed[x]) {
-                    continue;
-                }
-                if (GetAsyncKeyState(x)) {
-                    append_keycode(&new_displayed, x);
-                } else {
-                    currently_pressed[x] = false;
+            memset(is_pressed, 0, sizeof(is_pressed));
+            int new_nr_pressed = 0;
+            for (int x = 0;x < nr_pressed;x++) {
+                int code = pressed_indexes[x];
+                if(GetAsyncKeyState(code)) {
+                    append_keycode(&new_displayed, code);
+                    pressed_indexes[new_nr_pressed++] = pressed_indexes[x];
+                    is_pressed[code] = true;
                 }
             }
+            nr_pressed = new_nr_pressed;
 
             for(int x = 1;x < VK_MAX;x++) {
-                if(currently_pressed[x]) {
+                if(is_pressed[x]) {
                     continue;
                 }
                 if(GetAsyncKeyState(x)) {
                     append_keycode(&new_displayed, x);
+                    pressed_indexes[nr_pressed++] = x;
                 }
             }
 
-            if(new_displayed == tmp_new_displayed) {
+            if(new_displayed == txt_tmp) {
                 memcpy(new_displayed, TXT_DEFAULT, sizeof(TXT_DEFAULT));
             } else {
                 *(new_displayed - 1) = '\0';
             }
 
-            if(strcmp(currently_displayed, tmp_new_displayed) != 0) {
-                memcpy(currently_displayed, tmp_new_displayed, TXT_MAX_SIZE);
-                mbstowcs(currently_displayed_w, currently_displayed, TXT_MAX_SIZE);
-                SetWindowText(hwndStaticText, currently_displayed_w);
+            if(strcmp(txt_current, txt_tmp) != 0) {
+                memcpy(txt_current, txt_tmp, TXT_MAX_SIZE);
+                mbstowcs(txt_current_w, txt_current, TXT_MAX_SIZE);
+                SetWindowText(hwndStaticText, txt_current_w);
             }
             return 0;
         }

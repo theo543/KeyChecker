@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <climits>
 #include <cstdlib>
+#include <cstdio>
 
 const wchar_t STATIC_CLASS[] = TEXT("STATIC");
 const wchar_t WINDOW_CLASS[] = TEXT("Key Checker");
@@ -11,10 +12,31 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT wm, WPARAM wp, LPARAM lp);
 const int WINDOW_WIDTH_INIT = 400;
 const int WINDOW_HEIGHT_INIT = 200;
 
-const int TXT_BUFFER_SIZE = CHAR_MAX;
-char txtBuffer[TXT_BUFFER_SIZE] = {};
-wchar_t txtBufferW[TXT_BUFFER_SIZE] = {};
-const wchar_t TXT_DEFAULT[] = TEXT("Press a key...");
+const char TXT_DEFAULT[] = "Press a key...";
+const int VK_MAX = 0xFF;
+const int TXT_MAX_SIZE = VK_MAX * 5 + 1; // non-ASCII VK will be formatted as 0xXX, and a space is added after each
+const int VK_ASCII_MAX = 0x5A;
+const int VK_ASCII_MIN = 0x30;
+
+bool currently_pressed[TXT_MAX_SIZE] = {};
+char currently_displayed[TXT_MAX_SIZE] = {};
+wchar_t currently_displayed_w[TXT_MAX_SIZE] = {};
+char tmp_new_displayed[TXT_MAX_SIZE] = {};
+
+const char HEX_CHARS[] = "0123456789ABCDEF";
+
+int append_keycode(char **dest, int keycode) {
+    if(keycode >= VK_ASCII_MIN && keycode <= VK_ASCII_MAX) {
+        sprintf(*dest, "%c ", static_cast<char>(keycode));
+        (*dest) += 2;
+        return 2;
+    } else {
+        char hex_first_digit = HEX_CHARS[keycode >> 4], hex_second_digit = HEX_CHARS[keycode & 0xF];
+        sprintf(*dest, "0x%c%c ", hex_first_digit, hex_second_digit);
+        *dest += 5;
+        return 5;
+    }
+}
 
 HWND hwndStaticText = nullptr;
 
@@ -97,41 +119,38 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT wm, WPARAM wp, LPARAM lp) {
         }
 
         case WM_TIMER: {
-            bool already_checked[TXT_BUFFER_SIZE] = {};
-            wchar_t txtNewBufferW[TXT_BUFFER_SIZE] = {};
+            char *new_displayed = tmp_new_displayed;
 
-            // remove no longer pressed letters in-place, keeping order of pressed ones
-            int new_string_size = 0;
-            for (char c : txtBuffer) {
-                if (c == '\0') {
-                    break;
-                }
-                if (GetAsyncKeyState(c)) {
-                    already_checked[c] = true;
-                    txtBuffer[new_string_size++] = c;
-                }
-            }
-
-            for(int x = 1;x < TXT_BUFFER_SIZE;x++) {
-                if(already_checked[x]) {
+            for (int x = 1;x < VK_MAX;x++) {
+                if(!currently_pressed[x]) {
                     continue;
                 }
-                char c = static_cast<char>(x);
-                if(GetAsyncKeyState(c)) {
-                    txtBuffer[new_string_size++] = c;
+                if (GetAsyncKeyState(x)) {
+                    append_keycode(&new_displayed, x);
+                } else {
+                    currently_pressed[x] = false;
                 }
             }
 
-            if(new_string_size == 0) {
-                wcscpy(txtNewBufferW, TXT_DEFAULT);
-            } else {
-                txtBuffer[new_string_size++] = '\0';
-                mbstowcs(txtNewBufferW, txtBuffer, TXT_BUFFER_SIZE);
+            for(int x = 1;x < VK_MAX;x++) {
+                if(currently_pressed[x]) {
+                    continue;
+                }
+                if(GetAsyncKeyState(x)) {
+                    append_keycode(&new_displayed, x);
+                }
             }
 
-            if(wcscmp(txtNewBufferW, txtBufferW) != 0) {
-                wcscpy(txtBufferW, txtNewBufferW);
-                SetWindowText(hwndStaticText, txtBufferW);
+            if(new_displayed == tmp_new_displayed) {
+                memcpy(new_displayed, TXT_DEFAULT, sizeof(TXT_DEFAULT));
+            } else {
+                *(new_displayed - 1) = '\0';
+            }
+
+            if(strcmp(currently_displayed, tmp_new_displayed) != 0) {
+                memcpy(currently_displayed, tmp_new_displayed, TXT_MAX_SIZE);
+                mbstowcs(currently_displayed_w, currently_displayed, TXT_MAX_SIZE);
+                SetWindowText(hwndStaticText, currently_displayed_w);
             }
             return 0;
         }

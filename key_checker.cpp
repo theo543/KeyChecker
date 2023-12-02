@@ -1,5 +1,6 @@
 #include <windows.h>
-#include <cstdio>
+#include <climits>
+#include <cstdlib>
 
 const wchar_t STATIC_CLASS[] = TEXT("STATIC");
 const wchar_t WINDOW_CLASS[] = TEXT("Key Checker");
@@ -10,8 +11,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT wm, WPARAM wp, LPARAM lp);
 const int WINDOW_WIDTH_INIT = 400;
 const int WINDOW_HEIGHT_INIT = 200;
 
-const int TXT_BUFFER_SIZE = 100;
-wchar_t TXT_BUFFER[TXT_BUFFER_SIZE] = {};
+const int TXT_BUFFER_SIZE = CHAR_MAX;
+char txtBuffer[TXT_BUFFER_SIZE] = {};
+wchar_t txtBufferW[TXT_BUFFER_SIZE] = {};
 
 HWND hwndStaticText = nullptr;
 
@@ -49,7 +51,7 @@ int main() {
             0,
             STATIC_CLASS,
             nullptr,
-        WS_CHILD | WS_VISIBLE,
+            WS_CHILD | WS_VISIBLE,
 
             0,
             0,
@@ -72,20 +74,49 @@ int main() {
         DispatchMessage(&msg);
     }
 
-    return (int)msg.wParam;
+    return static_cast<int>(msg.wParam);
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT wm, WPARAM wp, LPARAM lp) {
     switch (wm) {
-        case WM_DESTROY:
+        case WM_DESTROY: {
             PostQuitMessage(0);
             return 0;
+        }
 
-        case WM_TIMER:
-            swprintf(TXT_BUFFER, TXT_BUFFER_SIZE, TEXT("Hello"));
-            SetWindowText(hwndStaticText, TXT_BUFFER);
+        case WM_TIMER: {
+            bool already_checked[TXT_BUFFER_SIZE] = {};
 
-        default:
+            // remove no longer pressed letters in-place, keeping order of pressed ones
+            int new_string_size = 0;
+            for (char c : txtBuffer) {
+                if (c == '\0') {
+                    break;
+                }
+                if (GetAsyncKeyState(c)) {
+                    already_checked[c] = true;
+                    txtBuffer[new_string_size++] = c;
+                }
+            }
+
+            for(int x = 1;x < TXT_BUFFER_SIZE;x++) {
+                if(already_checked[x]) {
+                    continue;
+                }
+                char c = static_cast<char>(x);
+                if(GetAsyncKeyState(c)) {
+                    txtBuffer[new_string_size++] = c;
+                }
+            }
+
+            txtBuffer[new_string_size++] = '\0';
+            mbstowcs(txtBufferW, txtBuffer, TXT_BUFFER_SIZE);
+            SetWindowText(hwndStaticText, txtBufferW);
+            return 0;
+        }
+
+        default: {
             return DefWindowProc(hwnd, wm, wp, lp);
+        }
     }
 }

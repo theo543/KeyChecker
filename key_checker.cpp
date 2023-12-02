@@ -14,6 +14,7 @@ const int WINDOW_HEIGHT_INIT = 200;
 const int TXT_BUFFER_SIZE = CHAR_MAX;
 char txtBuffer[TXT_BUFFER_SIZE] = {};
 wchar_t txtBufferW[TXT_BUFFER_SIZE] = {};
+const wchar_t TXT_DEFAULT[] = TEXT("Press a key...");
 
 HWND hwndStaticText = nullptr;
 
@@ -120,9 +121,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT wm, WPARAM wp, LPARAM lp) {
                 }
             }
 
-            txtBuffer[new_string_size++] = '\0';
-            mbstowcs(txtBufferW, txtBuffer, TXT_BUFFER_SIZE);
-            SetWindowText(hwndStaticText, txtBufferW);
+            if(new_string_size == 0) {
+                SetWindowText(hwndStaticText, TXT_DEFAULT);
+            } else {
+                txtBuffer[new_string_size++] = '\0';
+                mbstowcs(txtBufferW, txtBuffer, TXT_BUFFER_SIZE);
+                SetWindowText(hwndStaticText, txtBufferW);
+            }
             return 0;
         }
 

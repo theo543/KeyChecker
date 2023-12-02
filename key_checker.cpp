@@ -4,7 +4,7 @@
 
 const wchar_t STATIC_CLASS[] = TEXT("STATIC");
 const wchar_t WINDOW_CLASS[] = TEXT("Key Checker");
-WNDCLASS wc = {};
+WNDCLASSEX wc = {};
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT wm, WPARAM wp, LPARAM lp);
 
@@ -24,11 +24,20 @@ const int TIMER_MS = 5; // 5 ms = 200 Hz
 int main() {
     hInst = GetModuleHandle(nullptr);
 
+    wc.cbSize = sizeof(wc);
+    wc.style = 0;
     wc.lpfnWndProc = WindowProc;
+    wc.cbClsExtra = 0;
+    wc.cbWndExtra = 0;
     wc.hInstance = hInst;
+    wc.hIcon = nullptr;
+    wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+    wc.hbrBackground = nullptr;
+    wc.lpszMenuName = nullptr;
     wc.lpszClassName = WINDOW_CLASS;
+    wc.hIconSm = nullptr;
 
-    RegisterClass(&wc);
+    RegisterClassEx(&wc);
 
     HWND hwnd = CreateWindowEx(
             0,
@@ -66,6 +75,8 @@ int main() {
     );
 
     ShowWindow(hwnd, SW_SHOWNORMAL);
+    // no resize
+    SetWindowLongPtrA(hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_STYLE) & ~WS_SIZEBOX & ~WS_MAXIMIZEBOX);
 
     SetTimer(hwnd, 0, TIMER_MS, nullptr);
     MSG msg = {};

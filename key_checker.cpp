@@ -9,7 +9,7 @@
     #define GetAsyncKeyState(x) (always_true ? true : GetAsyncKeyState(x))
 #endif
 
-const wchar_t STATIC_CLASS[] = TEXT("STATIC");
+const wchar_t EDIT_CONTROL_CLASS[] = TEXT("EDIT");
 const wchar_t WINDOW_CLASS[] = TEXT("Key Checker");
 WNDCLASSEX wc = {};
 
@@ -94,9 +94,9 @@ int main() {
 
     hwndStaticText = CreateWindowEx(
             0,
-            STATIC_CLASS,
+            EDIT_CONTROL_CLASS,
             nullptr,
-            WS_CHILD | WS_VISIBLE | SS_LEFT | SS_SUNKEN,
+            WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | ES_READONLY | ES_MULTILINE | ES_LEFT,
 
            TXT_MARGIN,
            TXT_MARGIN,

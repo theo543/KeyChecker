@@ -11,3 +11,5 @@ option(DEBUG_DISPLAY_ALL_KEYCODES "Replace GetAsyncKeyState with true" OFF)
 if(DEBUG_DISPLAY_ALL_KEYCODES)
     target_compile_definitions(key_checker PRIVATE DEBUG_DISPLAY_ALL_KEYCODES)
 endif()
+
+add_executable(total_keycode_name_size total_keycode_name_size.cpp keycode_names.c)

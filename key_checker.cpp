@@ -11,15 +11,21 @@
 
 const wchar_t EDIT_CONTROL_CLASS[] = TEXT("EDIT");
 const wchar_t WINDOW_CLASS[] = TEXT("Key Checker");
+const wchar_t BUTTON_CLASS[] = TEXT("BUTTON");
+HMENU BUTTON_ID = HMENU(1);
 WNDCLASSEX wc = {};
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT wm, WPARAM wp, LPARAM lp);
 
 const int WINDOW_WIDTH_INIT = 400;
 const int WINDOW_HEIGHT_INIT = 200;
+const int MARGIN = 10;
+const int COPY_BUTTON_HEIGHT = 30;
+const int COPY_BUTTON_WIDTH = 200;
 
+const wchar_t COPY_BUTTON_TEXT[] = TEXT("Copy to clipboard");
+const wchar_t COPY_BUTTON_ERROR[] = TEXT("Couldn't copy to clipboard");
 const char TXT_DEFAULT[] = "Press a key...";
-const int TXT_MARGIN = 10;
 const int VK_MAX = 0xFF;
 const int TXT_MAX_SIZE = VK_MAX * 30 + 1;
 const int VK_ASCII_LETTER_MIN = 0x41;
@@ -51,11 +57,43 @@ void append_keycode(char **dest, int keycode) {
     }
 }
 
-HWND hwndStaticText = nullptr;
+HWND hwndWindow = nullptr;
+HWND hwndText = nullptr;
+HWND hwndButton = nullptr;
 
 HINSTANCE hInst = nullptr;
 
 const int TIMER_MS = 5; // 5 ms = 200 Hz
+
+void autosize(const int WINDOW_WIDTH, const int WINDOW_HEIGHT) {
+    const int TXT_WIDTH = WINDOW_WIDTH - 2 * MARGIN;
+    const int TXT_HEIGHT = WINDOW_HEIGHT - 2 * MARGIN - COPY_BUTTON_HEIGHT - 2 * MARGIN;
+    const int COPY_BUTTON_X = MARGIN;
+    const int COPY_BUTTON_Y = WINDOW_HEIGHT - MARGIN - COPY_BUTTON_HEIGHT;
+    SetWindowPos(
+            hwndText,
+            nullptr,
+
+            MARGIN,
+            MARGIN,
+            TXT_WIDTH,
+            TXT_HEIGHT,
+
+            SWP_NOZORDER | SWP_NOCOPYBITS
+    );
+
+    SetWindowPos(
+            hwndButton,
+            nullptr,
+
+            COPY_BUTTON_X,
+            COPY_BUTTON_Y,
+            COPY_BUTTON_WIDTH,
+            COPY_BUTTON_HEIGHT,
+
+            SWP_NOZORDER | SWP_NOCOPYBITS
+    );
+}
 
 int main() {
     hInst = GetModuleHandle(nullptr);
@@ -75,7 +113,7 @@ int main() {
 
     RegisterClassEx(&wc);
 
-    HWND hwnd = CreateWindowEx(
+    hwndWindow = CreateWindowEx(
             0,
             WINDOW_CLASS,
             TEXT("Key Checker"),
@@ -92,28 +130,49 @@ int main() {
             nullptr
     );
 
-    hwndStaticText = CreateWindowEx(
+    hwndText = CreateWindowEx(
             0,
             EDIT_CONTROL_CLASS,
             nullptr,
             WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | ES_READONLY | ES_MULTILINE | ES_LEFT,
 
-           TXT_MARGIN,
-           TXT_MARGIN,
-           WINDOW_WIDTH_INIT - 2 * TXT_MARGIN,
-           WINDOW_HEIGHT_INIT - 2 * TXT_MARGIN,
+            MARGIN,
+            MARGIN,
+            0,
+            0,
 
-            hwnd,
+            hwndWindow,
             nullptr,
             hInst,
 
             nullptr
     );
 
-    ShowWindow(hwnd, SW_SHOWNORMAL);
+    hwndButton = CreateWindowEx(
+            0,
+            BUTTON_CLASS,
+            COPY_BUTTON_TEXT,
+            WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
 
-    SetTimer(hwnd, 0, TIMER_MS, nullptr);
+            0,
+            0,
+            COPY_BUTTON_WIDTH,
+            COPY_BUTTON_HEIGHT,
+
+            hwndWindow,
+            BUTTON_ID,
+            hInst,
+
+            nullptr
+    );
+
+    autosize(WINDOW_WIDTH_INIT, WINDOW_HEIGHT_INIT);
+
+    ShowWindow(hwndWindow, SW_SHOWNORMAL);
+
+    SetTimer(hwndWindow, 0, TIMER_MS, nullptr);
     MSG msg = {};
+
     while (GetMessage(&msg, nullptr, 0, 0)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
@@ -163,25 +222,35 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT wm, WPARAM wp, LPARAM lp) {
             if(strcmp(txt_current, txt_tmp) != 0) {
                 memcpy(txt_current, txt_tmp, TXT_MAX_SIZE);
                 mbstowcs(txt_current_w, txt_current, TXT_MAX_SIZE);
-                SetWindowText(hwndStaticText, txt_current_w);
+                SetWindowText(hwndText, txt_current_w);
             }
             return 0;
         }
 
         case WM_SIZE: {
             int width = LOWORD(lp), height = HIWORD(lp);
-            SetWindowPos(
-                hwndStaticText,
-                nullptr,
-
-                TXT_MARGIN,
-                TXT_MARGIN,
-                width - 2 * TXT_MARGIN,
-                height - 2 * TXT_MARGIN,
-
-                SWP_NOZORDER | SWP_NOCOPYBITS
-            );
+            autosize(width, height);
             return 0;
+        }
+
+        case WM_COMMAND: {
+            if(reinterpret_cast<HMENU>(wp) == BUTTON_ID) {
+                if(OpenClipboard(hwndWindow)) {
+                    EmptyClipboard();
+                    HGLOBAL txtGlobalCopy = GlobalAlloc(GMEM_MOVEABLE, sizeof(txt_current_w));
+                    if (txtGlobalCopy != nullptr) {
+                        memcpy(GlobalLock(txtGlobalCopy), txt_current_w, sizeof(txt_current_w));
+                        GlobalUnlock(txtGlobalCopy);
+                        SetClipboardData(CF_UNICODETEXT, txtGlobalCopy);
+                        SetWindowText(hwndButton, COPY_BUTTON_TEXT);
+                    } else {
+                        SetWindowText(hwndButton, COPY_BUTTON_ERROR);
+                    }
+                    CloseClipboard();
+                }
+                return 0;
+            }
+            return 1;
         }
 
         default: {

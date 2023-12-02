@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(key_checker LANGUAGES C)
+project(key_checker LANGUAGES CXX)
 
-add_executable(key_checker key_checker.c)
+add_executable(key_checker key_checker.cpp)
 target_compile_definitions(key_checker PRIVATE UNICODE)

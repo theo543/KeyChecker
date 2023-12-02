@@ -1,5 +1,5 @@
 #include <windows.h>
-#include <stdio.h>
+#include <cstdio>
 
 const wchar_t STATIC_CLASS[] = TEXT("STATIC");
 const wchar_t WINDOW_CLASS[] = TEXT("Key Checker");
@@ -10,17 +10,17 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT wm, WPARAM wp, LPARAM lp);
 const int WINDOW_WIDTH_INIT = 400;
 const int WINDOW_HEIGHT_INIT = 200;
 
-wchar_t TXT_BUFFER[100] = {};
-const int TXT_BUFFER_SIZE = sizeof(TXT_BUFFER) / sizeof(TXT_BUFFER[0]);
+const int TXT_BUFFER_SIZE = 100;
+wchar_t TXT_BUFFER[TXT_BUFFER_SIZE] = {};
 
-HWND hwndStaticText = NULL;
+HWND hwndStaticText = nullptr;
 
-HINSTANCE hInst = NULL;
+HINSTANCE hInst = nullptr;
 
 const int TIMER_MS = 5; // 5 ms = 200 Hz
 
 int main() {
-    hInst = GetModuleHandle(NULL);
+    hInst = GetModuleHandle(nullptr);
 
     wc.lpfnWndProc = WindowProc;
     wc.hInstance = hInst;
@@ -39,16 +39,16 @@ int main() {
             WINDOW_WIDTH_INIT,
             WINDOW_HEIGHT_INIT,
 
-            NULL,
-            NULL,
+            nullptr,
+            nullptr,
             hInst,
-            NULL
+            nullptr
     );
 
     hwndStaticText = CreateWindowEx(
             0,
             STATIC_CLASS,
-            NULL,
+            nullptr,
         WS_CHILD | WS_VISIBLE,
 
             0,
@@ -57,17 +57,17 @@ int main() {
             WINDOW_HEIGHT_INIT,
 
             hwnd,
-            NULL,
+            nullptr,
             hInst,
 
-            NULL
+            nullptr
     );
 
     ShowWindow(hwnd, SW_SHOWNORMAL);
 
-    SetTimer(hwnd, 0, TIMER_MS, NULL);
+    SetTimer(hwnd, 0, TIMER_MS, nullptr);
     MSG msg = {};
-    while (GetMessage(&msg, NULL, 0, 0)) {
+    while (GetMessage(&msg, nullptr, 0, 0)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }

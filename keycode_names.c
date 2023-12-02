@@ -1,4 +1,5 @@
 // https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
+// winuser.h
 
 const char *keycode_names[] = {
         [0x01] = "VK_LBUTTON",
@@ -19,15 +20,11 @@ const char *keycode_names[] = {
         [0x12] = "VK_MENU",
         [0x13] = "VK_PAUSE",
         [0x14] = "VK_CAPITAL",
-        // conflict?
-        //[0x15] = "VK_KANA",
-        //[0x15] = "VK_HANGUL",
+        [0x15] = "VK_KANA|VK_HANGEUL|VK_HANGUL",
         [0x16] = "VK_IME_ON",
         [0x17] = "VK_JUNJA",
         [0x18] = "VK_FINAL",
-        // conflict?
-        //[0x19] = "VK_HANJA",
-        //[0x19] = "VK_KANJI",
+        [0x19] = "VK_HANJA|VK_KANJI",
         [0x1A] = "VK_IME_OFF",
         [0x1B] = "VK_ESCAPE",
         [0x1C] = "VK_CONVERT",
@@ -101,7 +98,11 @@ const char *keycode_names[] = {
 
         [0x90] = "VK_NUMLOCK",
         [0x91] = "VK_SCROLL",
-
+        [0x92] = "VK_OEM_NEC_EQUAL|VK_OEM_FJ_JISHO",
+        [0x93] = "VK_OEM_FJ_MASSHOU",
+        [0x94] = "VK_OEM_FJ_TOUROKU",
+        [0x95] = "VK_OEM_FJ_LOYA",
+        [0x96] = "VK_OEM_FJ_ROYA",
 
         [0xA0] = "VK_LSHIFT",
         [0xA1] = "VK_RSHIFT",
@@ -142,14 +143,27 @@ const char *keycode_names[] = {
         [0xDE] = "VK_OEM_7",
         [0xDF] = "VK_OEM_8",
 
-
+        [0xE1] = "VK_OEM_AX",
         [0xE2] = "VK_OEM_102",
-
+        [0xE3] = "VK_ICO_HELP",
+        [0xE4] = "VK_ICO_00",
         [0xE5] = "VK_PROCESSKEY",
-
+        [0xE6] = "VK_ICO_CLEAR",
         [0xE7] = "VK_PACKET",
 
-
+        [0xE9] = "VK_OEM_RESET",
+        [0xEA] = "VK_OEM_JUMP",
+        [0xEB] = "VK_OEM_PA1",
+        [0xEC] = "VK_OEM_PA2",
+        [0xED] = "VK_OEM_PA3",
+        [0xEE] = "VK_OEM_WSCTRL",
+        [0xEF] = "VK_OEM_CUSEL",
+        [0xF0] = "VK_OEM_ATTN",
+        [0xF1] = "VK_OEM_FINISH",
+        [0xF2] = "VK_OEM_COPY",
+        [0xF3] = "VK_OEM_AUTO",
+        [0xF4] = "VK_OEM_ENLW",
+        [0xF5] = "VK_OEM_BACKTAB",
         [0xF6] = "VK_ATTN",
         [0xF7] = "VK_CRSEL",
         [0xF8] = "VK_EXSEL",

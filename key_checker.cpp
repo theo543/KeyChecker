@@ -98,6 +98,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT wm, WPARAM wp, LPARAM lp) {
 
         case WM_TIMER: {
             bool already_checked[TXT_BUFFER_SIZE] = {};
+            wchar_t txtNewBufferW[TXT_BUFFER_SIZE] = {};
 
             // remove no longer pressed letters in-place, keeping order of pressed ones
             int new_string_size = 0;
@@ -122,10 +123,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT wm, WPARAM wp, LPARAM lp) {
             }
 
             if(new_string_size == 0) {
-                SetWindowText(hwndStaticText, TXT_DEFAULT);
+                wcscpy(txtNewBufferW, TXT_DEFAULT);
             } else {
                 txtBuffer[new_string_size++] = '\0';
-                mbstowcs(txtBufferW, txtBuffer, TXT_BUFFER_SIZE);
+                mbstowcs(txtNewBufferW, txtBuffer, TXT_BUFFER_SIZE);
+            }
+
+            if(wcscmp(txtNewBufferW, txtBufferW) != 0) {
+                wcscpy(txtBufferW, txtNewBufferW);
                 SetWindowText(hwndStaticText, txtBufferW);
             }
             return 0;

@@ -247,6 +247,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT wm, WPARAM wp, LPARAM lp) {
                         SetWindowText(hwndButton, COPY_BUTTON_ERROR);
                     }
                     CloseClipboard();
+                } else {
+                    SetWindowText(hwndButton, COPY_BUTTON_ERROR);
                 }
                 return 0;
             }

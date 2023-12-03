@@ -3,6 +3,19 @@
 #include <cstdlib>
 #include <cstdio>
 
+#ifndef TOTAL_KEYCODE_NAME_SIZE
+    #if __has_include("total_keycode_name_size.h")
+        #include "total_keycode_name_size.h"
+    #else
+        #warning "Auto-generated header file total_keycode_name_size.h not found, and the TOTAL_KEYCODE_NAME_SIZE macro was not defined another way. Did you run a CMake build?"
+    #endif
+#endif
+
+#ifndef TOTAL_KEYCODE_NAME_SIZE
+    #define TOTAL_KEYCODE_NAME_SIZE (VK_MAX * 50)
+    #warning "TOTAL_KEYCODE_NAME_SIZE not defined, using (VK_MAX * 50) as default"
+#endif
+
 #ifdef DEBUG_DISPLAY_ALL_KEYCODES
     // don't let compiler know that this is always true
     volatile bool always_true = true;
@@ -27,7 +40,7 @@ const wchar_t COPY_BUTTON_TEXT[] = TEXT("Copy to clipboard");
 const wchar_t COPY_BUTTON_ERROR[] = TEXT("Couldn't copy to clipboard");
 const char TXT_DEFAULT[] = "Press a key...";
 const int VK_MAX = 0xFF;
-const int TXT_MAX_SIZE = 2119 + 1; // see total_keycode_name_size.cpp for calculation
+const int TXT_MAX_SIZE = TOTAL_KEYCODE_NAME_SIZE + 1; // see total_keycode_name_size.cpp for calculation
 const int VK_ASCII_LETTER_MIN = 0x41;
 const int VK_ASCII_LETTER_MAX = 0x5A;
 const int VK_ASCII_NUMBER_MIN = 0x30;
